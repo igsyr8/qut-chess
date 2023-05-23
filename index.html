@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Website</title>
+    <!-- Include the Recorder.js library -->
+    <script src="path/to/recorder.js"></script>
+</head>
+<body>
+    <h1>Welcome, record your song</h1>
+
+    <button id="start">Start Recording</button>
+    <button id="stop">Stop Recording</button>
+    <button id="play" disabled>Play Recording</button> <!-- Disabled initially -->
+
+    <audio id="audio" controls></audio> <!-- Add an audio element for playback -->
+    
+    <!-- Add a timer element to display the recording duration -->
+    <p id="timer">00:00</p>
+
+    <script>
+    // Check microphone permission
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(stream) {
+            // Microphone access granted
+            console.log("Microphone access granted!");
+
+            let mediaRecorder;
+            let audioChunks = [];
+            let audioBlob;
+            let timerInterval; // Variable to hold the setInterval reference
+            let startTime; // Variable to store the start time of the recording
+
+            document.getElementById("start").addEventListener("click", function() {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+
+                startTime = Date.now(); // Store the start time
+
+                // Start the timer
+                timerInterval = setInterval(updateTimer, 1000);
+            });
+
+            document.getElementById("stop").addEventListener("click", function() {
+                mediaRecorder.stop();
+
+                mediaRecorder.addEventListener("stop", () => {
+                    clearInterval(timerInterval); // Stop the timer
+
+                    audioBlob = new Blob(audioChunks);
+                    document.getElementById("play").disabled = false; // Enable play button
+                });
+
+                // Clear the audio chunks for the next recording
+                audioChunks = [];
+            });
+
+            document.getElementById("play").addEventListener("click", function() {
+                let audioURL = URL.createObjectURL(audioBlob);
+                let audioElement = document.getElementById("audio");
+                audioElement.src = audioURL;
+            });
+
+            // Function to update the timer
+            function updateTimer() {
+                const currentTime = Date.now();
+                const duration = new Date(currentTime - startTime);
+
+                const minutes = duration.getUTCMinutes().toString().padStart(2, "0");
+                const seconds = duration.getUTCSeconds().toString().padStart(2, "0");
+
+                document.getElementById("timer").textContent = `${minutes}:${seconds}`;
+            }
+        })
+        .catch(function(error) {
+            // Microphone access denied or error occurred
+            console.log("Microphone access denied or error occurred:", error);
+            if (error.name === "NotAllowedError") {
+                // Display a message to the user
+                alert("Microphone access is required to use this feature. Please enable microphone access in your browser settings.");
+            }
+        });
+    </script>
+</body>
+</html>
