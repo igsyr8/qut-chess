@@ -2,6 +2,27 @@
 <html>
 <head>
     <title>Your Website</title>
+    <style>
+        body {
+            background: linear-gradient(to bottom, #87cefa, #000000);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        /* Add more CSS styles for your elements */
+        
+    </style>
     <!-- Include the Recorder.js library -->
     <script src="path/to/recorder.js"></script>
 </head>
@@ -13,16 +34,20 @@
     <button id="play" disabled>Play Recording</button> <!-- Disabled initially -->
 
     <audio id="audio" controls></audio> <!-- Add an audio element for playback -->
-    
+
     <!-- Add a timer element to display the recording duration -->
     <p id="timer">00:00</p>
 
     <script>
+    let mediaStream; // Variable to store the media stream
+
     // Check microphone permission
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(function(stream) {
             // Microphone access granted
             console.log("Microphone access granted!");
+
+            mediaStream = stream; // Store the media stream
 
             let mediaRecorder;
             let audioChunks = [];
@@ -31,7 +56,7 @@
             let startTime; // Variable to store the start time of the recording
 
             document.getElementById("start").addEventListener("click", function() {
-                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder = new MediaRecorder(mediaStream); // Use the stored media stream
                 mediaRecorder.start();
 
                 startTime = Date.now(); // Store the start time
@@ -48,6 +73,9 @@
 
                     audioBlob = new Blob(audioChunks);
                     document.getElementById("play").disabled = false; // Enable play button
+
+                    // Stop the media stream
+                    mediaStream.getTracks().forEach(track => track.stop());
                 });
 
                 // Clear the audio chunks for the next recording
