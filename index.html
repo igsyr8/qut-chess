@@ -95,7 +95,10 @@
         function drawWaveform() {
             const canvas = document.getElementById("waveform");
             const canvasContext = canvas.getContext("2d");
-            const analyser = recorder.source.context.createAnalyser();
+            const audioContext = recorder.source.context;
+            const analyser = audioContext.createAnalyser();
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
 
             // Connect the source node to the analyser node
             recorder.source.connect(analyser);
@@ -108,8 +111,6 @@
             function animateWaveform() {
                 requestAnimationFrame(animateWaveform);
 
-                const bufferLength = analyser.frequencyBinCount;
-                const dataArray = new Uint8Array(bufferLength);
                 analyser.getByteTimeDomainData(dataArray);
 
                 canvasContext.fillStyle = "rgba(255, 255, 255, 0.2)";
