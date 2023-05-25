@@ -70,6 +70,11 @@
     <script src="recorder.js"></script>
     <script>
         let recorder; // Recorder object for handling recording
+        let timerInterval; // Variable to store the interval for updating the timer
+        let startTime; // Variable to store the start time of recording
+        let canvas; // Canvas element for drawing waveform
+        let canvasContext; // Canvas context for drawing waveform
+        let analyser; // Analyser node for audio analysis
 
         function startRecording() {
             navigator.mediaDevices.getUserMedia({ audio: true })
@@ -84,9 +89,23 @@
 
                     recorder.record();
 
-                    // Start the audio processing and drawing
-                    audioContext.resume();
-                    drawWaveform();
+                    // Start the timer
+                    startTime = Date.now();
+                    startTimer();
+
+                    // Initialize the canvas and analyser
+                    canvas = document.getElementById("waveform");
+                    canvasContext = canvas.getContext("2d");
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 2048;
+                    const bufferLength = analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+
+                    // Connect the source node to the analyser node
+                    source.connect(analyser);
+
+                    // Start drawing the waveform
+                    drawWaveform(bufferLength, dataArray);
                 })
                 .catch(function (error) {
                     // Microphone access denied or error occurred
@@ -107,56 +126,61 @@
                     audioElement.src = URL.createObjectURL(blob);
                     audioElement.controls = true;
                 });
+
+                // Stop the timer
+                stopTimer();
             }
         }
 
-        function drawWaveform() {
-            const canvas = document.getElementById("waveform");
-            const canvasContext = canvas.getContext("2d");
-            const analyser = recorder.source.context.createAnalyser();
+        function startTimer() {
+            timerInterval = setInterval(function () {
+                const currentTime = Date.now();
+                const elapsedTime = currentTime - startTime;
+                const seconds = Math.floor(elapsedTime / 1000);
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                const formattedTime = `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
+                document.getElementById("timer").textContent = formattedTime;
+            }, 1000);
+        }
 
-            // Connect the source node to the analyser node
-            recorder.source.connect(analyser);
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
 
-            // Set up the canvas size
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
+        function drawWaveform(bufferLength, dataArray) {
+            canvasContext.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Function to draw the waveform
-            function animateWaveform() {
-                requestAnimationFrame(animateWaveform);
+            requestAnimationFrame(function () {
+                drawWaveform(bufferLength, dataArray);
+            });
 
-                const bufferLength = analyser.frequencyBinCount;
-                const dataArray = new Uint8Array(bufferLength);
-                analyser.getByteTimeDomainData(dataArray);
+            analyser.getByteTimeDomainData(dataArray);
 
-                canvasContext.fillStyle = "rgba(255, 255, 255, 0.2)";
-                canvasContext.fillRect(0, 0, canvas.width, canvas.height);
-                canvasContext.lineWidth = 2;
-                canvasContext.strokeStyle = "white";
-                canvasContext.beginPath();
+            canvasContext.fillStyle = "rgba(255, 255, 255, 0.2)";
+            canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+            canvasContext.lineWidth = 2;
+            canvasContext.strokeStyle = "white";
+            canvasContext.beginPath();
 
-                const sliceWidth = canvas.width * 1.0 / bufferLength;
-                let x = 0;
+            const sliceWidth = canvas.width * 1.0 / bufferLength;
+            let x = 0;
 
-                for (let i = 0; i < bufferLength; i++) {
-                    const v = dataArray[i] / 128.0;
-                    const y = (v * canvas.height) / 2;
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = (v * canvas.height) / 2;
 
-                    if (i === 0) {
-                        canvasContext.moveTo(x, y);
-                    } else {
-                        canvasContext.lineTo(x, y);
-                    }
-
-                    x += sliceWidth;
+                if (i === 0) {
+                    canvasContext.moveTo(x, y);
+                } else {
+                    canvasContext.lineTo(x, y);
                 }
 
-                canvasContext.lineTo(canvas.width, canvas.height / 2);
-                canvasContext.stroke();
+                x += sliceWidth;
             }
 
-            animateWaveform();
+            canvasContext.lineTo(canvas.width, canvas.height / 2);
+            canvasContext.stroke();
         }
 
         document.getElementById("start").addEventListener("click", function () {
