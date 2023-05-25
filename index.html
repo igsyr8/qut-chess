@@ -19,10 +19,19 @@
             text-align: center;
             padding: 20px;
         }
+
+        canvas {
+            width: 80%;
+            height: 200px;
+            background-color: rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <h1>Welcome, record your song</h1>
+
+    <canvas id="waveform"></canvas>
 
     <button id="start">Start Recording</button>
     <button id="stop">Stop Recording</button>
@@ -38,6 +47,9 @@
         let recorder; // Recorder object for handling recording
         let timerInterval; // Variable to store the interval for updating the timer
         let startTime; // Variable to store the start time of recording
+        let canvas; // Canvas element for drawing waveform
+        let canvasContext; // Canvas context for drawing waveform
+        let analyser; // Analyser node for audio analysis
 
         function startRecording() {
             navigator.mediaDevices.getUserMedia({ audio: true })
@@ -55,6 +67,20 @@
                     // Start the timer
                     startTime = Date.now();
                     startTimer();
+
+                    // Initialize the canvas and analyser
+                    canvas = document.getElementById("waveform");
+                    canvasContext = canvas.getContext("2d");
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 2048;
+                    const bufferLength = analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+
+                    // Connect the source node to the analyser node
+                    source.connect(analyser);
+
+                    // Start drawing the waveform
+                    drawWaveform(bufferLength, dataArray);
                 })
                 .catch(function (error) {
                     // Microphone access denied or error occurred
@@ -95,6 +121,39 @@
 
         function stopTimer() {
             clearInterval(timerInterval);
+        }
+
+        function drawWaveform(bufferLength, dataArray) {
+            requestAnimationFrame(function draw() {
+                drawWaveform(bufferLength, dataArray);
+            });
+
+            analyser.getByteTimeDomainData(dataArray);
+
+            canvasContext.fillStyle = "rgba(255, 255, 255, 0.2)";
+            canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+            canvasContext.lineWidth = 2;
+            canvasContext.strokeStyle = "white";
+            canvasContext.beginPath();
+
+            const sliceWidth = canvas.width * 1.0 / bufferLength;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = (v * canvas.height) / 2;
+
+                if (i === 0) {
+                    canvasContext.moveTo(x, y);
+                } else {
+                    canvasContext.lineTo(x, y);
+                }
+
+                x += sliceWidth;
+            }
+
+            canvasContext.lineTo(canvas.width, canvas.height / 2);
+            canvasContext.stroke();
         }
 
         document.getElementById("start").addEventListener("click", function () {
