@@ -50,88 +50,86 @@
         let canvas; // Canvas element for drawing waveform
         let canvasContext; // Canvas context for drawing waveform
 
-        // Check microphone permission
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(function(stream) {
-                // Microphone access granted
-                console.log("Microphone access granted!");
+        // Check microphone permission and start recording
+        function startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function(stream) {
+                    // Microphone access granted
+                    console.log("Microphone access granted!");
 
-                mediaStream = stream; // Store the media stream
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                canvas = document.getElementById("waveform");
-                canvasContext = canvas.getContext("2d");
+                    mediaStream = stream; // Store the media stream
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    canvas = document.getElementById("waveform");
+                    canvasContext = canvas.getContext("2d");
 
-                // Connect the media stream to the analyser node
-                const source = audioContext.createMediaStreamSource(mediaStream);
-                source.connect(analyser);
+                    // Connect the media stream to the analyser node
+                    const source = audioContext.createMediaStreamSource(mediaStream);
+                    source.connect(analyser);
 
-                // Set up the canvas size
-                canvas.width = canvas.offsetWidth;
-                canvas.height = canvas.offsetHeight;
+                    // Set up the canvas size
+                    canvas.width = canvas.offsetWidth;
+                    canvas.height = canvas.offsetHeight;
 
-                // Function to draw the waveform
-                function drawWaveform() {
-                    requestAnimationFrame(drawWaveform);
+                    // Function to draw the waveform
+                    function drawWaveform() {
+                        requestAnimationFrame(drawWaveform);
 
-                    const bufferLength = analyser.frequencyBinCount;
-                    const dataArray = new Uint8Array(bufferLength);
-                    analyser.getByteTimeDomainData(dataArray);
+                        const bufferLength = analyser.frequencyBinCount;
+                        const dataArray = new Uint8Array(bufferLength);
+                        analyser.getByteTimeDomainData(dataArray);
 
-                    canvasContext.fillStyle = "rgba(255, 255, 255, 0.2)";
-                    canvasContext.fillRect(0, 0, canvas.width, canvas.height);
-                    canvasContext.lineWidth = 2;
-                    canvasContext.strokeStyle = "white";
-                    canvasContext.beginPath();
+                        canvasContext.fillStyle = "rgba(255, 255, 255, 0.2)";
+                        canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+                        canvasContext.lineWidth = 2;
+                        canvasContext.strokeStyle = "white";
+                        canvasContext.beginPath();
 
-                    const sliceWidth = canvas.width * 1.0 / bufferLength;
-                    let x = 0;
+                        const sliceWidth = canvas.width * 1.0 / bufferLength;
+                        let x = 0;
 
-                    for (let i = 0; i < bufferLength; i++) {
-                        const v = dataArray[i] / 128.0;
-                        const y = (v * canvas.height) / 2;
+                        for (let i = 0; i < bufferLength; i++) {
+                            const v = dataArray[i] / 128.0;
+                            const y = (v * canvas.height) / 2;
 
-                        if (i === 0) {
-                            canvasContext.moveTo(x, y);
-                        } else {
-                            canvasContext.lineTo(x, y);
+                            if (i === 0) {
+                                canvasContext.moveTo(x, y);
+                            } else {
+                                canvasContext.lineTo(x, y);
+                            }
+
+                            x += sliceWidth;
                         }
 
-                        x += sliceWidth;
+                        canvasContext.lineTo(canvas.width, canvas.height / 2);
+                        canvasContext.stroke();
                     }
 
-                    canvasContext.lineTo(canvas.width, canvas.height / 2);
-                    canvasContext.stroke();
-                }
-
-                document.getElementById("start").addEventListener("click", function () {
-                    // Start the audio processing and drawing
-                    if (audioContext.state === "suspended") {
-                        audioContext.resume().then(function () {
-                            console.log("Audio context resumed");
-                            drawWaveform();
-                        });
-                    } else {
-                        drawWaveform();
+                    drawWaveform();
+                })
+                .catch(function (error) {
+                    // Microphone access denied or error occurred
+                    console.log("Microphone access denied or error occurred:", error);
+                    if (error.name === "NotAllowedError") {
+                        // Display a message to the user
+                        alert("Microphone access is required to use this feature. Please enable microphone access in your browser settings.");
                     }
                 });
+        }
 
-                document.getElementById("stop").addEventListener("click", function () {
-                    // Stop the audio processing
-                    audioContext.suspend();
+        document.getElementById("start").addEventListener("click", function () {
+            // Start the recording
+            startRecording();
+        });
+
+        document.getElementById("stop").addEventListener("click", function () {
+            // Stop the audio processing
+            if (mediaStream && mediaStream.getTracks) {
+                mediaStream.getTracks().forEach(function (track) {
+                    track.stop();
                 });
-
-                // Enable the "Start Recording" button once microphone access is granted
-                document.getElementById("start").disabled = false;
-            })
-            .catch(function (error) {
-                // Microphone access denied or error occurred
-                console.log("Microphone access denied or error occurred:", error);
-                if (error.name === "NotAllowedError") {
-                    // Display a message to the user
-                    alert("Microphone access is required to use this feature. Please enable microphone access in your browser settings.");
-                }
-            });
+            }
+        });
     </script>
 </body>
 </html>
