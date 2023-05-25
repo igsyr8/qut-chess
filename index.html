@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -34,7 +33,7 @@
 
     <canvas id="waveform"></canvas>
 
-    <button id="start" disabled>Start Recording</button>
+    <button id="start">Start Recording</button>
     <button id="stop">Stop Recording</button>
     <button id="play" disabled>Play Recording</button> <!-- Disabled initially -->
 
@@ -107,8 +106,14 @@
 
                 document.getElementById("start").addEventListener("click", function () {
                     // Start the audio processing and drawing
-                    audioContext.resume();
-                    drawWaveform();
+                    if (audioContext.state === "suspended") {
+                        audioContext.resume().then(function () {
+                            console.log("Audio context resumed");
+                            drawWaveform();
+                        });
+                    } else {
+                        drawWaveform();
+                    }
                 });
 
                 document.getElementById("stop").addEventListener("click", function () {
