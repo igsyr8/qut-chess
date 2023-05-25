@@ -44,67 +44,23 @@
 
     <script src="recorder.js"></script>
     <script>
-        let mediaStream; // Variable to store the media stream
-        let audioContext; // Audio context for audio processing
-        let analyser; // Analyser node for audio analysis
-        let canvas; // Canvas element for drawing waveform
-        let canvasContext; // Canvas context for drawing waveform
+        let recorder; // Recorder object for handling recording
 
-        // Check microphone permission and start recording
         function startRecording() {
             navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(function(stream) {
+                .then(function (stream) {
                     // Microphone access granted
                     console.log("Microphone access granted!");
 
-                    mediaStream = stream; // Store the media stream
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    analyser = audioContext.createAnalyser();
-                    canvas = document.getElementById("waveform");
-                    canvasContext = canvas.getContext("2d");
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const source = audioContext.createMediaStreamSource(stream);
 
-                    // Connect the media stream to the analyser node
-                    const source = audioContext.createMediaStreamSource(mediaStream);
-                    source.connect(analyser);
+                    recorder = new Recorder(source);
 
-                    // Set up the canvas size
-                    canvas.width = canvas.offsetWidth;
-                    canvas.height = canvas.offsetHeight;
+                    recorder.record();
 
-                    // Function to draw the waveform
-                    function drawWaveform() {
-                        requestAnimationFrame(drawWaveform);
-
-                        const bufferLength = analyser.frequencyBinCount;
-                        const dataArray = new Uint8Array(bufferLength);
-                        analyser.getByteTimeDomainData(dataArray);
-
-                        canvasContext.fillStyle = "rgba(255, 255, 255, 0.2)";
-                        canvasContext.fillRect(0, 0, canvas.width, canvas.height);
-                        canvasContext.lineWidth = 2;
-                        canvasContext.strokeStyle = "white";
-                        canvasContext.beginPath();
-
-                        const sliceWidth = canvas.width * 1.0 / bufferLength;
-                        let x = 0;
-
-                        for (let i = 0; i < bufferLength; i++) {
-                            const v = dataArray[i] / 128.0;
-                            const y = (v * canvas.height) / 2;
-
-                            if (i === 0) {
-                                canvasContext.moveTo(x, y);
-                            } else {
-                                canvasContext.lineTo(x, y);
-                            }
-
-                            x += sliceWidth;
-                        }
-
-                        canvasContext.lineTo(canvas.width, canvas.height / 2);
-                        canvasContext.stroke();
-                    }
-
+                    // Start the audio processing and drawing
+                    audioContext.resume();
                     drawWaveform();
                 })
                 .catch(function (error) {
@@ -117,19 +73,77 @@
                 });
         }
 
+        function stopRecording() {
+            if (recorder) {
+                recorder.stop();
+                recorder.exportWAV(function (blob) {
+                    // Handle the recorded audio blob
+                    const audioElement = document.getElementById("audio");
+                    audioElement.src = URL.createObjectURL(blob);
+                    audioElement.controls = true;
+                });
+            }
+        }
+
+        function drawWaveform() {
+            const canvas = document.getElementById("waveform");
+            const canvasContext = canvas.getContext("2d");
+            const analyser = recorder.source.context.createAnalyser();
+
+            // Connect the source node to the analyser node
+            recorder.source.connect(analyser);
+
+            // Set up the canvas size
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            // Function to draw the waveform
+            function animateWaveform() {
+                requestAnimationFrame(animateWaveform);
+
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                analyser.getByteTimeDomainData(dataArray);
+
+                canvasContext.fillStyle = "rgba(255, 255, 255, 0.2)";
+                canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+                canvasContext.lineWidth = 2;
+                canvasContext.strokeStyle = "white";
+                canvasContext.beginPath();
+
+                const sliceWidth = canvas.width * 1.0 / bufferLength;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    const v = dataArray[i] / 128.0;
+                    const y = (v * canvas.height) / 2;
+
+                    if (i === 0) {
+                        canvasContext.moveTo(x, y);
+                    } else {
+                        canvasContext.lineTo(x, y);
+                    }
+
+                    x += sliceWidth;
+                }
+
+                canvasContext.lineTo(canvas.width, canvas.height / 2);
+                canvasContext.stroke();
+            }
+
+            animateWaveform();
+        }
+
         document.getElementById("start").addEventListener("click", function () {
             // Start the recording
             startRecording();
         });
 
         document.getElementById("stop").addEventListener("click", function () {
-            // Stop the audio processing
-            if (mediaStream && mediaStream.getTracks) {
-                mediaStream.getTracks().forEach(function (track) {
-                    track.stop();
-                });
-            }
+            // Stop the recording
+            stopRecording();
         });
     </script>
 </body>
 </html>
+
