@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Your Website</title>
+    <title>Music Recording Platform</title>
     <style>
         body {
             background: linear-gradient(to bottom, #87cefa, #000000);
@@ -26,8 +26,8 @@
             background-color: rgba(255, 255, 255, 0.2);
             margin-bottom: 20px;
         }
-	
-	#timer {
+
+        #timer {
             color: white;
             font-size: 40px;
             text-align: center;
@@ -57,21 +57,53 @@
             background-color: #cccccc;
             cursor: not-allowed;
         }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .button-container button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: white;
+            background-color: #333333;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .button-container button:hover {
+            background-color: #555555;
+        }
     </style>
 </head>
 <body>
-    <h1>Welcome, record your song</h1>
+    <div id="homepage">
+        <h1>Welcome to the Music Recording Platform!</h1>
 
-    <canvas id="waveform"></canvas>
+        <div class="button-container">
+            <button id="record-song">Record a Song</button>
+            <button id="music-news">Music/Rap News</button>
+        </div>
+    </div>
 
-    <button id="start" class="button">Start Recording</button>
-    <button id="stop" class="button">Stop Recording</button>
-    <button id="play" class="button" disabled>Play Recording</button> <!-- Disabled initially -->
+    <div id="recording-page" style="display: none;">
+        <h1>Welcome, record your song</h1>
 
-    <audio id="audio" controls></audio> <!-- Add an audio element for playback -->
+        <canvas id="waveform"></canvas>
 
-    <!-- Add a timer element to display the recording duration -->
-    <p id="timer">00:00</p>
+        <button id="start" class="button">Start Recording</button>
+        <button id="stop" class="button">Stop Recording</button>
+        <button id="play" class="button" disabled>Play Recording</button> <!-- Disabled initially -->
+
+        <audio id="audio" controls></audio> <!-- Add an audio element for playback -->
+
+        <!-- Add a timer element to display the recording duration -->
+        <p id="timer">00:00</p>
+    </div>
 
     <script src="recorder.js"></script>
     <script>
@@ -171,7 +203,6 @@
 
             const sliceWidth = canvas.width * 1.0 / bufferLength;
             let x = 0;
-
             for (let i = 0; i < bufferLength; i++) {
                 const v = dataArray[i] / 128.0;
                 const y = (v * canvas.height) / 2;
@@ -188,6 +219,17 @@
             canvasContext.lineTo(canvas.width, canvas.height / 2);
             canvasContext.stroke();
         }
+
+        document.getElementById("record-song").addEventListener("click", function () {
+            // Show the recording page
+            document.getElementById("homepage").style.display = "none";
+            document.getElementById("recording-page").style.display = "block";
+        });
+
+        document.getElementById("music-news").addEventListener("click", function () {
+            // Redirect to the music/rap news page (to be created)
+            window.location.href = "music_news.html";
+        });
 
         document.getElementById("start").addEventListener("click", function () {
             // Start the recording
