@@ -84,6 +84,13 @@
             margin-right: auto;
             display: block;
         }
+
+        #home-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1;
+        }
     </style>
 </head>
 <body>
@@ -97,6 +104,7 @@
     </div>
 
     <div id="recording-page" style="display: none;">
+        <a href="#" id="home-button" class="button">Home</a>
         <h1>Welcome, record your song</h1>
 
         <canvas id="waveform"></canvas>
@@ -238,6 +246,12 @@
             window.location.href = "music_news.html";
         });
 
+        document.getElementById("home-button").addEventListener("click", function () {
+            // Go back to the homepage
+            document.getElementById("homepage").style.display = "block";
+            document.getElementById("recording-page").style.display = "none";
+        });
+
         document.getElementById("start").addEventListener("click", function () {
             // Start the recording
             startRecording();
@@ -248,19 +262,6 @@
             stopRecording();
         });
     </script>
-    <?php
-    // Generate random waveform data
-    $bufferLength = 200; // Adjust this value to control the length of the waveform
-    $dataArray = array();
-    for ($i = 0; $i < $bufferLength; $i++) {
-        $dataArray[] = mt_rand(0, 200); // Adjust the range (0-200) to control the waveform height
-    }
-
-    // Output waveform data as JavaScript code
-    echo '<script>';
-    echo 'var waveformData = ' . json_encode($dataArray) . ';';
-    echo '</script>';
-    ?>
 </body>
 </html>
 
