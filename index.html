@@ -84,13 +84,6 @@
             margin-right: auto;
             display: block;
         }
-
-        #home-button {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 1;
-        }
     </style>
 </head>
 <body>
@@ -104,7 +97,6 @@
     </div>
 
     <div id="recording-page" style="display: none;">
-        <a href="#" id="home-button" class="button">Home</a>
         <h1>Welcome, record your song</h1>
 
         <canvas id="waveform"></canvas>
@@ -112,6 +104,7 @@
         <div class="button-container">
             <button id="start" class="button">Start Recording</button>
             <button id="stop" class="button">Stop Recording</button>
+            <button id="share" class="button">Share on SoundCloud</button> <!-- Add the Share button -->
         </div>
 
         <audio id="audio" controls></audio> <!-- Add an audio element for playback -->
@@ -246,12 +239,6 @@
             window.location.href = "music_news.html";
         });
 
-        document.getElementById("home-button").addEventListener("click", function () {
-            // Go back to the homepage
-            document.getElementById("homepage").style.display = "block";
-            document.getElementById("recording-page").style.display = "none";
-        });
-
         document.getElementById("start").addEventListener("click", function () {
             // Start the recording
             startRecording();
@@ -260,6 +247,13 @@
         document.getElementById("stop").addEventListener("click", function () {
             // Stop the recording
             stopRecording();
+        });
+
+        document.getElementById("share").addEventListener("click", function () {
+            // Share the audio on SoundCloud (replace the URL with your SoundCloud sharing URL)
+            const audioURL = document.getElementById("audio").src;
+            const soundcloudURL = "https://soundcloud.com/upload";
+            window.open(soundcloudURL + "?url=" + audioURL, "_blank");
         });
     </script>
 </body>
