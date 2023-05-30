@@ -97,7 +97,6 @@
 
         <button id="start" class="button">Start Recording</button>
         <button id="stop" class="button">Stop Recording</button>
-        <button id="play" class="button" disabled>Play Recording</button> <!-- Disabled initially -->
 
         <audio id="audio" controls></audio> <!-- Add an audio element for playback -->
 
@@ -165,8 +164,6 @@
                     audioElement.controls = true;
                 });
 
-                // Enable the "Play Recording" button
-                document.getElementById("play").disabled = false;
 
                 // Stop the timer
                 stopTimer();
