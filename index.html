@@ -1,3 +1,5 @@
+
+ 
 <!DOCTYPE html>
 <html>
 <head>
@@ -21,7 +23,7 @@
         }
 
         canvas {
-            width: 80%;
+            width: 100%;
             height: 200px;
             background-color: rgba(255, 255, 255, 0.2);
             margin-bottom: 20px;
@@ -69,14 +71,20 @@
             padding: 10px 20px;
             font-size: 18px;
             color: white;
-            background-color: #333333;
+            background-color: #4CAF50;
             border: none;
             border-radius: 5px;
             cursor: pointer;
         }
 
         .button-container button:hover {
-            background-color: #555555;
+            background-color: #45a049;
+        }
+
+        #audio {
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
         }
     </style>
 </head>
@@ -85,8 +93,8 @@
         <h1>Welcome to the Music Recording Platform!</h1>
 
         <div class="button-container">
-            <button id="record-song">Record a Song</button>
-            <button id="music-news">Music/Rap News</button>
+            <button id="record-song" class="button">Record a Song</button>
+            <button id="music-news" class="button">Music/Rap News</button>
         </div>
     </div>
 
@@ -100,8 +108,9 @@
             <button id="stop" class="button">Stop Recording</button>
         </div>
 
-        <audio id="audio" controls></audio>
+        <audio id="audio" controls></audio> <!-- Add an audio element for playback -->
 
+        <!-- Add a timer element to display the recording duration -->
         <p id="timer">00:00</p>
     </div>
 
@@ -243,5 +252,3 @@
     </script>
 </body>
 </html>
-
- 
