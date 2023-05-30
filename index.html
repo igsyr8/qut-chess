@@ -84,6 +84,22 @@
             margin-right: auto;
             display: block;
         }
+
+        #home-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: black;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #home-button:hover {
+            background-color: blue;
+        }
     </style>
 </head>
 <body>
@@ -97,36 +113,35 @@
     </div>
 
     <div id="recording-page" style="display: none;">
+        <a id="home-button" href="#">Home</a> <!-- Add the home button -->
+
         <h1>Welcome, record your song</h1>
 
         <canvas id="waveform"></canvas>
 
         <div class="button-container">
-            <button id="home" class="button">Home</button>
             <button id="start" class="button">Start Recording</button>
             <button id="stop" class="button">Stop Recording</button>
             <button id="share" class="button">Share on SoundCloud</button>
         </div>
 
-        <audio id="audio" controls></audio> <!-- Add an audio element for playback -->
+        <audio id="audio" controls></audio>
 
-        <!-- Add a timer element to display the recording duration -->
         <p id="timer">00:00</p>
     </div>
 
     <script src="recorder.js"></script>
     <script>
-        let recorder; // Recorder object for handling recording
-        let timerInterval; // Variable to store the interval for updating the timer
-        let startTime; // Variable to store the start time of recording
-        let canvas; // Canvas element for drawing waveform
-        let canvasContext; // Canvas context for drawing waveform
-        let analyser; // Analyser node for audio analysis
+        let recorder;
+        let timerInterval;
+        let startTime;
+        let canvas;
+        let canvasContext;
+        let analyser;
 
         function startRecording() {
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(function (stream) {
-                    // Microphone access granted
                     console.log("Microphone access granted!");
 
                     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -136,11 +151,9 @@
 
                     recorder.record();
 
-                    // Start the timer
                     startTime = Date.now();
                     startTimer();
 
-                    // Initialize the canvas and analyser
                     canvas = document.getElementById("waveform");
                     canvasContext = canvas.getContext("2d");
                     analyser = audioContext.createAnalyser();
@@ -148,17 +161,13 @@
                     const bufferLength = analyser.frequencyBinCount;
                     const dataArray = new Uint8Array(bufferLength);
 
-                    // Connect the source node to the analyser node
                     source.connect(analyser);
 
-                    // Start drawing the waveform
                     drawWaveform(bufferLength, dataArray);
                 })
                 .catch(function (error) {
-                    // Microphone access denied or error occurred
                     console.log("Microphone access denied or error occurred:", error);
                     if (error.name === "NotAllowedError") {
-                        // Display a message to the user
                         alert("Microphone access is required to use this feature. Please enable microphone access in your browser settings.");
                     }
                 });
@@ -168,13 +177,11 @@
             if (recorder) {
                 recorder.stop();
                 recorder.exportWAV(function (blob) {
-                    // Handle the recorded audio blob
                     const audioElement = document.getElementById("audio");
                     audioElement.src = URL.createObjectURL(blob);
                     audioElement.controls = true;
                 });
 
-                // Stop the timer
                 stopTimer();
             }
         }
@@ -229,65 +236,32 @@
             canvasContext.stroke();
         }
 
-        function shareOnSoundCloud(blob) {
-            // Create a FormData object to send the audio data
-            const formData = new FormData();
-            formData.append("file", blob, "recording.wav");
-
-            // Make a POST request to the SoundCloud API to upload the audio
-            fetch("https://api.soundcloud.com/tracks?client_id=YOUR_CLIENT_ID", {
-                method: "POST",
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    // Handle the response from SoundCloud
-                    if (data && data.permalink_url) {
-                        // Open the SoundCloud track URL in a new tab/window
-                        window.open(data.permalink_url, "_blank");
-                    } else {
-                        console.log("Error uploading audio to SoundCloud:", data);
-                    }
-                })
-                .catch(error => {
-                    console.log("Error uploading audio to SoundCloud:", error);
-                });
-        }
-
         document.getElementById("record-song").addEventListener("click", function () {
-            // Show the recording page
             document.getElementById("homepage").style.display = "none";
             document.getElementById("recording-page").style.display = "block";
         });
 
         document.getElementById("music-news").addEventListener("click", function () {
-            // Redirect to the music/rap news page (to be created)
             window.location.href = "music_news.html";
         });
 
-        document.getElementById("home").addEventListener("click", function () {
-            // Show the home page
-            document.getElementById("homepage").style.display = "block";
-            document.getElementById("recording-page").style.display = "none";
-        });
-
         document.getElementById("start").addEventListener("click", function () {
-            // Start the recording
             startRecording();
         });
 
         document.getElementById("stop").addEventListener("click", function () {
-            // Stop the recording
             stopRecording();
         });
 
         document.getElementById("share").addEventListener("click", function () {
-            // Share the recorded audio on SoundCloud
-            if (recorder) {
-                recorder.exportWAV(function (blob) {
-                    shareOnSoundCloud(blob);
-                });
-            }
+            const audioURL = document.getElementById("audio").src;
+            const soundcloudURL = "https://soundcloud.com/upload";
+            window.open(soundcloudURL + "?url=" + audioURL, "_blank");
+        });
+
+        document.getElementById("home-button").addEventListener("click", function () {
+            document.getElementById("recording-page").style.display = "none";
+            document.getElementById("homepage").style.display = "block";
         });
     </script>
 </body>
