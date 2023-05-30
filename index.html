@@ -98,12 +98,11 @@
 
     <div id="recording-page" style="display: none;">
         <h1>Welcome, record your song</h1>
-        <div class="button-container">
-            <button id="home" class="button">Home</button>
-        </div>
+
         <canvas id="waveform"></canvas>
 
         <div class="button-container">
+            <button id="home" class="button">Home</button>
             <button id="start" class="button">Start Recording</button>
             <button id="stop" class="button">Stop Recording</button>
             <button id="share" class="button">Share on SoundCloud</button>
@@ -230,6 +229,31 @@
             canvasContext.stroke();
         }
 
+        function shareOnSoundCloud(blob) {
+            // Create a FormData object to send the audio data
+            const formData = new FormData();
+            formData.append("file", blob, "recording.wav");
+
+            // Make a POST request to the SoundCloud API to upload the audio
+            fetch("https://api.soundcloud.com/tracks?client_id=YOUR_CLIENT_ID", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the response from SoundCloud
+                    if (data && data.permalink_url) {
+                        // Open the SoundCloud track URL in a new tab/window
+                        window.open(data.permalink_url, "_blank");
+                    } else {
+                        console.log("Error uploading audio to SoundCloud:", data);
+                    }
+                })
+                .catch(error => {
+                    console.log("Error uploading audio to SoundCloud:", error);
+                });
+        }
+
         document.getElementById("record-song").addEventListener("click", function () {
             // Show the recording page
             document.getElementById("homepage").style.display = "none";
@@ -242,7 +266,7 @@
         });
 
         document.getElementById("home").addEventListener("click", function () {
-            // Show the homepage
+            // Show the home page
             document.getElementById("homepage").style.display = "block";
             document.getElementById("recording-page").style.display = "none";
         });
@@ -258,9 +282,12 @@
         });
 
         document.getElementById("share").addEventListener("click", function () {
-            // Share the audio on SoundCloud (to be implemented)
-            // Replace the console.log with your SoundCloud sharing code
-            console.log("Sharing audio on SoundCloud");
+            // Share the recorded audio on SoundCloud
+            if (recorder) {
+                recorder.exportWAV(function (blob) {
+                    shareOnSoundCloud(blob);
+                });
+            }
         });
     </script>
 </body>
