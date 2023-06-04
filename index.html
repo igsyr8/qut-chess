@@ -64,21 +64,6 @@
             margin-top: 20px;
         }
 
-        .button-container button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 18px;
-            color: white;
-            background-color: #4CAF50;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .button-container button:hover {
-            background-color: #45a049;
-        }
-
         #audio {
             margin-left: auto;
             margin-right: auto;
@@ -140,7 +125,8 @@
 
         function startRecording() {
             navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(function (stream) {                    console.log("Microphone access granted!");
+                .then(function (stream) {
+                    console.log("Microphone access granted!");
 
                     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     const source = audioContext.createMediaStreamSource(stream);
@@ -239,10 +225,6 @@
             document.getElementById("recording-page").style.display = "block";
         });
 
-        document.getElementById("music-news").addEventListener("click", function () {
-            window.location.href = "music_news.html";
-        });
-
         document.getElementById("start").addEventListener("click", function () {
             startRecording();
         });
@@ -264,4 +246,3 @@
     </script>
 </body>
 </html>
-
