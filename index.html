@@ -108,7 +108,6 @@
 
         <div class="button-container">
             <button id="record-song" class="button">Record a Song</button>
-            <button id="music-news" class="button">Music/Rap News</button>
         </div>
     </div>
 
@@ -141,8 +140,7 @@
 
         function startRecording() {
             navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(function (stream) {
-                    console.log("Microphone access granted!");
+                .then(function (stream) {                    console.log("Microphone access granted!");
 
                     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     const source = audioContext.createMediaStreamSource(stream);
